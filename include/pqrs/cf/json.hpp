@@ -1,6 +1,6 @@
 #pragma once
 
-// pqrs::cf::json v0.0
+// pqrs::cf::json v1.0
 
 // (C) Copyright Takayama Fumihiko 2020.
 // Distributed under the Boost Software License, Version 1.0.
