@@ -1,0 +1,53 @@
+{
+  "type": "array",
+  "value": [
+    {
+      "type": "boolean",
+      "value": true
+    },
+    {
+      "type": "boolean",
+      "value": false
+    },
+    {
+      "type": "data",
+      "value": [0, 1, 2, 3, 4, 5, 250]
+    },
+    {
+      "type": "dictionary",
+      "value": [
+        {
+          "key": {
+            "type": "string",
+            "value": "key1"
+          },
+          "value": {
+            "type": "string",
+            "value": "value1"
+          }
+        }
+      ]
+    },
+    {
+      "type": "number_float",
+      "value": 1.5
+    },
+    {
+      "type": "number_integer",
+      "value": 1234567890
+    },
+    {
+      "type": "set",
+      "value": [
+        {
+          "type": "string",
+          "value": "value1"
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "value": "example"
+    }
+  ]
+}

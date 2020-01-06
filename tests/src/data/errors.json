@@ -1,0 +1,113 @@
+[
+  {
+    "error": "json must be object, but is `\"string\"`",
+    "input": "string"
+  },
+  {
+    "error": "`type` is not found in `{}`",
+    "input": {}
+  },
+  {
+    "error": "`type` must be string, but is `123`",
+    "input": {
+      "type": 123
+    }
+  },
+  {
+    "error": "`value` is not found in `{\"type\":\"string\"}`",
+    "input": {
+      "type": "string"
+    }
+  },
+  {
+    "error": "`value` must be array, but is `123`",
+    "input": {
+      "type": "array",
+      "value": 123
+    }
+  },
+  {
+    "error": "`value` must be boolean, but is `123`",
+    "input": {
+      "type": "boolean",
+      "value": 123
+    }
+  },
+  {
+    "error": "`value` must be array, but is `123`",
+    "input": {
+      "type": "data",
+      "value": 123
+    }
+  },
+  {
+    "error": "`value` must be array of numbers, but is `[\"hello\"]`",
+    "input": {
+      "type": "data",
+      "value": ["hello"]
+    }
+  },
+  {
+    "error": "`value` must be array, but is `123`",
+    "input": {
+      "type": "dictionary",
+      "value": 123
+    }
+  },
+  {
+    "error": "`value` must be array of objects, but is `[\"hello\"]`",
+    "input": {
+      "type": "dictionary",
+      "value": ["hello"]
+    }
+  },
+  {
+    "error": "`key` is not found in `{}`",
+    "input": {
+      "type": "dictionary",
+      "value": [{}]
+    }
+  },
+  {
+    "error": "`value` is not found in `{\"key\":{\"type\":\"string\",\"value\":\"key1\"}}`",
+    "input": {
+      "type": "dictionary",
+      "value": [
+        {
+          "key": {
+            "type": "string",
+            "value": "key1"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "error": "`value` must be number, but is `true`",
+    "input": {
+      "type": "number_float",
+      "value": true
+    }
+  },
+  {
+    "error": "`value` must be number, but is `true`",
+    "input": {
+      "type": "number_integer",
+      "value": true
+    }
+  },
+  {
+    "error": "`value` must be array, but is `true`",
+    "input": {
+      "type": "set",
+      "value": true
+    }
+  },
+  {
+    "error": "`value` must be string, but is `true`",
+    "input": {
+      "type": "string",
+      "value": true
+    }
+  }
+]

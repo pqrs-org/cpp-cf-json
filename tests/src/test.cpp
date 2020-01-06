@@ -126,3 +126,27 @@ TEST_CASE("CFString") {
   });
   REQUIRE(actual == expected);
 }
+
+TEST_CASE("json_to_cf_type") {
+  {
+    std::ifstream s("data/valid.json");
+    auto json = nlohmann::json::parse(s);
+    auto object = pqrs::cf::json_to_cf_type(json);
+    REQUIRE(object);
+    auto actual = pqrs::cf::cf_type_to_json(*object);
+    REQUIRE(actual == json);
+  }
+
+  {
+    std::ifstream s("data/errors.json");
+    auto json = nlohmann::json::parse(s);
+    for (const auto& j : json) {
+      REQUIRE_THROWS_AS(
+          pqrs::cf::json_to_cf_type(j["input"]),
+          pqrs::json::unmarshal_error);
+      REQUIRE_THROWS_WITH(
+          pqrs::cf::json_to_cf_type(j["input"]),
+          j["error"]);
+    }
+  }
+}

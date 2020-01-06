@@ -10,6 +10,7 @@ JSON serialization and deserialization for `CFTypeRef`.
 cpp-cf-json depends the following classes.
 
 - [pqrs::cf::array](https://github.com/pqrs-org/cpp-cf-array).
+- [pqrs::cf::dictionary](https://github.com/pqrs-org/cpp-cf-dictionary).
 - [pqrs::cf::number](https://github.com/pqrs-org/cpp-cf-number).
 - [pqrs::cf::set](https://github.com/pqrs-org/cpp-cf-set).
 - [pqrs::cf::string](https://github.com/pqrs-org/cpp-cf-string).
