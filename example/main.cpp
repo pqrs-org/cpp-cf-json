@@ -3,16 +3,16 @@
 #include <pqrs/cf/json.hpp>
 
 int main(void) {
-  std::cout << pqrs::cf::cf_type_to_json(CFSTR("example")) << std::endl;
+  std::cout << pqrs::cf::json::to_json(CFSTR("example")) << std::endl;
   if (auto number = pqrs::cf::make_cf_number(12345)) {
-    std::cout << pqrs::cf::cf_type_to_json(*number) << std::endl;
+    std::cout << pqrs::cf::json::to_json(*number) << std::endl;
   }
   if (auto number = pqrs::cf::make_cf_number(123.45)) {
-    std::cout << pqrs::cf::cf_type_to_json(*number) << std::endl;
+    std::cout << pqrs::cf::json::to_json(*number) << std::endl;
   }
-  std::cout << pqrs::cf::cf_type_to_json(kCFBooleanTrue) << std::endl;
-  std::cout << pqrs::cf::cf_type_to_json(kCFBooleanFalse) << std::endl;
-  std::cout << pqrs::cf::cf_type_to_json(nullptr) << std::endl;
+  std::cout << pqrs::cf::json::to_json(kCFBooleanTrue) << std::endl;
+  std::cout << pqrs::cf::json::to_json(kCFBooleanFalse) << std::endl;
+  std::cout << pqrs::cf::json::to_json(nullptr) << std::endl;
 
   //
   // array
@@ -82,10 +82,11 @@ int main(void) {
     }
 
     //
-    // cf_type_to_json
+    // to_json
     //
 
-    std::cout << std::setw(4) << pqrs::cf::cf_type_to_json(array) << std::endl;
+    std::cout << std::setw(4) << pqrs::cf::json::to_json(array) << std::endl;
+    // std::cout << std::setw(4) << pqrs::cf::json::strip_cf_type_json(pqrs::cf::json::to_json(array)) << std::endl;
     CFRelease(array);
   }
 

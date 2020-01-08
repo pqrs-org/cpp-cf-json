@@ -6,7 +6,7 @@
 TEST_CASE("CFArray") {
   auto array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
   CFArrayAppendValue(array, CFSTR("example"));
-  auto actual = pqrs::cf::cf_type_to_json(array);
+  auto actual = pqrs::cf::json::to_json(array);
   auto expected = nlohmann::json::object({
       {"type", "array"},
       {"value", nlohmann::json::array({
@@ -23,7 +23,7 @@ TEST_CASE("CFArray") {
 
 TEST_CASE("CFBoolean") {
   {
-    auto actual = pqrs::cf::cf_type_to_json(kCFBooleanTrue);
+    auto actual = pqrs::cf::json::to_json(kCFBooleanTrue);
     auto expected = nlohmann::json::object({
         {"type", "boolean"},
         {"value", true},
@@ -32,7 +32,7 @@ TEST_CASE("CFBoolean") {
   }
 
   {
-    auto actual = pqrs::cf::cf_type_to_json(kCFBooleanFalse);
+    auto actual = pqrs::cf::json::to_json(kCFBooleanFalse);
     auto expected = nlohmann::json::object({
         {"type", "boolean"},
         {"value", false},
@@ -46,7 +46,7 @@ TEST_CASE("CFData") {
   auto data = CFDataCreate(kCFAllocatorDefault,
                            bytes,
                            sizeof(bytes));
-  auto actual = pqrs::cf::cf_type_to_json(data);
+  auto actual = pqrs::cf::json::to_json(data);
   auto expected = nlohmann::json::object({
       {"type", "data"},
       {"value", nlohmann::json::array({0, 1, 2, 3, 4, 5, 250})},
@@ -63,7 +63,7 @@ TEST_CASE("CFDictionary") {
                                               &kCFTypeDictionaryValueCallBacks);
   CFDictionaryAddValue(dictionary, CFSTR("k"), CFSTR("v"));
 
-  auto actual = pqrs::cf::cf_type_to_json(dictionary);
+  auto actual = pqrs::cf::json::to_json(dictionary);
   auto expected = nlohmann::json::object({
       {"type", "dictionary"},
       {"value", nlohmann::json::array({nlohmann::json::object({
@@ -79,7 +79,7 @@ TEST_CASE("CFDictionary") {
 TEST_CASE("CFNumber") {
   {
     auto number = pqrs::cf::make_cf_number(123);
-    auto actual = pqrs::cf::cf_type_to_json(*number);
+    auto actual = pqrs::cf::json::to_json(*number);
     auto expected = nlohmann::json::object({
         {"type", "number_integer"},
         {"value", 123},
@@ -89,7 +89,7 @@ TEST_CASE("CFNumber") {
 
   {
     auto number = pqrs::cf::make_cf_number(123.5);
-    auto actual = pqrs::cf::cf_type_to_json(*number);
+    auto actual = pqrs::cf::json::to_json(*number);
     auto expected = nlohmann::json::object({
         {"type", "number_float"},
         {"value", 123.5},
@@ -105,7 +105,7 @@ TEST_CASE("CFSet") {
                                               &kCFTypeDictionaryValueCallBacks);
   CFDictionaryAddValue(dictionary, CFSTR("k"), CFSTR("v"));
 
-  auto actual = pqrs::cf::cf_type_to_json(dictionary);
+  auto actual = pqrs::cf::json::to_json(dictionary);
   auto expected = nlohmann::json::object({
       {"type", "dictionary"},
       {"value", nlohmann::json::array({nlohmann::json::object({
@@ -119,7 +119,7 @@ TEST_CASE("CFSet") {
 }
 
 TEST_CASE("CFString") {
-  auto actual = pqrs::cf::cf_type_to_json(CFSTR("example"));
+  auto actual = pqrs::cf::json::to_json(CFSTR("example"));
   auto expected = nlohmann::json::object({
       {"type", "string"},
       {"value", "example"},
@@ -127,13 +127,13 @@ TEST_CASE("CFString") {
   REQUIRE(actual == expected);
 }
 
-TEST_CASE("json_to_cf_type") {
+TEST_CASE("to_cf_type") {
   {
     std::ifstream s("data/valid.json");
     auto json = nlohmann::json::parse(s);
-    auto object = pqrs::cf::json_to_cf_type(json);
+    auto object = pqrs::cf::json::to_cf_type(json);
     REQUIRE(object);
-    auto actual = pqrs::cf::cf_type_to_json(*object);
+    auto actual = pqrs::cf::json::to_json(*object);
     REQUIRE(actual == json);
   }
 
@@ -142,11 +142,28 @@ TEST_CASE("json_to_cf_type") {
     auto json = nlohmann::json::parse(s);
     for (const auto& j : json) {
       REQUIRE_THROWS_AS(
-          pqrs::cf::json_to_cf_type(j["input"]),
+          pqrs::cf::json::to_cf_type(j["input"]),
           pqrs::json::unmarshal_error);
       REQUIRE_THROWS_WITH(
-          pqrs::cf::json_to_cf_type(j["input"]),
+          pqrs::cf::json::to_cf_type(j["input"]),
           j["error"]);
     }
   }
+}
+
+TEST_CASE("strip_cf_type_json") {
+  nlohmann::json actual;
+  nlohmann::json expected;
+
+  {
+    std::ifstream s("data/valid.json");
+    auto json = nlohmann::json::parse(s);
+    actual = pqrs::cf::json::strip_cf_type_json(json);
+  }
+  {
+    std::ifstream s("data/stripped.json");
+    expected = nlohmann::json::parse(s);
+  }
+
+  REQUIRE(actual == expected);
 }
