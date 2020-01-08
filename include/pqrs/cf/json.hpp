@@ -159,9 +159,7 @@ inline cf_ptr<CFTypeRef> to_cf_type(const nlohmann::json& json) {
 
     std::vector<uint8_t> bytes;
     for (const auto& j : value_json) {
-      if (!j.is_number()) {
-        throw pqrs::json::unmarshal_error("`value` must be array of numbers, but is `"s + value_json.dump() + "`"s);
-      }
+      pqrs::json::requires_number(j, "entry of `value`");
 
       bytes.push_back(j.get<uint8_t>());
     }
@@ -178,9 +176,7 @@ inline cf_ptr<CFTypeRef> to_cf_type(const nlohmann::json& json) {
     auto dictionary = make_cf_mutable_dictionary();
 
     for (const auto& j : value_json) {
-      if (!j.is_object()) {
-        throw pqrs::json::unmarshal_error("`value` must be array of objects, but is `"s + value_json.dump() + "`"s);
-      }
+      pqrs::json::requires_object(j, "entry of `value`");
 
       nlohmann::json k_json = impl::get_dictionary_key(j);
       nlohmann::json v_json = impl::get_dictionary_value(j);

@@ -13,9 +13,7 @@ namespace impl {
 std::string get_type(const nlohmann::json& json) {
   using namespace std::string_literals;
 
-  if (!json.is_object()) {
-    throw pqrs::json::unmarshal_error("json must be object, but is `"s + json.dump() + "`"s);
-  }
+  pqrs::json::requires_object(json, "json");
 
   auto it = json.find("type");
   if (it == std::end(json)) {
@@ -23,9 +21,7 @@ std::string get_type(const nlohmann::json& json) {
   }
 
   auto type_json = it.value();
-  if (!type_json.is_string()) {
-    throw pqrs::json::unmarshal_error("`type` must be string, but is `"s + type_json.dump() + "`"s);
-  }
+  pqrs::json::requires_string(type_json, "`type`");
 
   return type_json.get<std::string>();
 }
@@ -33,9 +29,7 @@ std::string get_type(const nlohmann::json& json) {
 nlohmann::json get_value_json(const nlohmann::json& json) {
   using namespace std::string_literals;
 
-  if (!json.is_object()) {
-    throw pqrs::json::unmarshal_error("json must be object, but is `"s + json.dump() + "`"s);
-  }
+  pqrs::json::requires_object(json, "json");
 
   auto it = json.find("value");
   if (it == std::end(json)) {
@@ -45,35 +39,31 @@ nlohmann::json get_value_json(const nlohmann::json& json) {
 }
 
 void validate_array_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
-
-  if (!json.is_array()) {
-    throw pqrs::json::unmarshal_error("`value` must be array, but is `"s + json.dump() + "`"s);
-  }
+  pqrs::json::requires_array(json, "`value`");
 }
 
 void validate_boolean_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
-
-  if (!json.is_boolean()) {
-    throw pqrs::json::unmarshal_error("`value` must be boolean, but is `"s + json.dump() + "`"s);
-  }
+  pqrs::json::requires_boolean(json, "`value`");
 }
 
 void validate_data_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
-
-  if (!json.is_array()) {
-    throw pqrs::json::unmarshal_error("`value` must be array, but is `"s + json.dump() + "`"s);
-  }
+  pqrs::json::requires_array(json, "`value`");
 }
 
 void validate_dictionary_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
+  pqrs::json::requires_array(json, "`value`");
+}
 
-  if (!json.is_array()) {
-    throw pqrs::json::unmarshal_error("`value` must be array, but is `"s + json.dump() + "`"s);
-  }
+void validate_number_value(const nlohmann::json& json) {
+  pqrs::json::requires_number(json, "`value`");
+}
+
+void validate_set_value(const nlohmann::json& json) {
+  pqrs::json::requires_array(json, "`value`");
+}
+
+void validate_string_value(const nlohmann::json& json) {
+  pqrs::json::requires_string(json, "`value`");
 }
 
 nlohmann::json get_dictionary_key(const nlohmann::json& json) {
@@ -96,30 +86,6 @@ nlohmann::json get_dictionary_value(const nlohmann::json& json) {
   }
 
   return it.value();
-}
-
-void validate_number_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
-
-  if (!json.is_number()) {
-    throw pqrs::json::unmarshal_error("`value` must be number, but is `"s + json.dump() + "`"s);
-  }
-}
-
-void validate_set_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
-
-  if (!json.is_array()) {
-    throw pqrs::json::unmarshal_error("`value` must be array, but is `"s + json.dump() + "`"s);
-  }
-}
-
-void validate_string_value(const nlohmann::json& json) {
-  using namespace std::string_literals;
-
-  if (!json.is_string()) {
-    throw pqrs::json::unmarshal_error("`value` must be string, but is `"s + json.dump() + "`"s);
-  }
 }
 } // namespace impl
 } // namespace json

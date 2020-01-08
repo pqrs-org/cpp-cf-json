@@ -41,7 +41,7 @@
     }
   },
   {
-    "error": "`value` must be array of numbers, but is `[\"hello\"]`",
+    "error": "entry of `value` must be number, but is `\"hello\"`",
     "input": {
       "type": "data",
       "value": ["hello"]
@@ -55,7 +55,7 @@
     }
   },
   {
-    "error": "`value` must be array of objects, but is `[\"hello\"]`",
+    "error": "entry of `value` must be object, but is `\"hello\"`",
     "input": {
       "type": "dictionary",
       "value": ["hello"]
