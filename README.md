@@ -15,6 +15,7 @@ cpp-cf-json depends the following classes.
 - [pqrs::cf::set](https://github.com/pqrs-org/cpp-cf-set).
 - [pqrs::cf::string](https://github.com/pqrs-org/cpp-cf-string).
 - [pqrs::json](https://github.com/pqrs-org/cpp-json).
+- [type_safe](https://github.com/foonathan/type_safe)
 
 ## Install
 

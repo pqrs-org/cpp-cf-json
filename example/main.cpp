@@ -86,7 +86,8 @@ int main(void) {
     //
 
     std::cout << std::setw(4) << pqrs::cf::json::to_json(array) << std::endl;
-    // std::cout << std::setw(4) << pqrs::cf::json::strip_cf_type_json(pqrs::cf::json::to_json(array)) << std::endl;
+    // std::cout << std::setw(4) << pqrs::cf::json::strip_cf_type_json(pqrs::cf::json::to_json(array), pqrs::cf::json::strip_option::none) << std::endl;
+    // std::cout << std::setw(4) << pqrs::cf::json::strip_cf_type_json(pqrs::cf::json::to_json(array), pqrs::cf::json::strip_option::collapse_dictionary) << std::endl;
     CFRelease(array);
   }
 

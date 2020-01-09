@@ -29,6 +29,21 @@
       ]
     },
     {
+      "type": "dictionary",
+      "value": [
+        {
+          "key": {
+            "type": "number_integer",
+            "value": 123
+          },
+          "value": {
+            "type": "number_integer",
+            "value": 456
+          }
+        }
+      ]
+    },
+    {
       "type": "number_float",
       "value": 1.5
     },

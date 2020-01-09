@@ -152,18 +152,37 @@ TEST_CASE("to_cf_type") {
 }
 
 TEST_CASE("strip_cf_type_json") {
-  nlohmann::json actual;
-  nlohmann::json expected;
+  {
+    nlohmann::json actual;
+    nlohmann::json expected;
+
+    {
+      std::ifstream s("data/valid.json");
+      auto json = nlohmann::json::parse(s);
+      actual = pqrs::cf::json::strip_cf_type_json(json);
+    }
+    {
+      std::ifstream s("data/stripped.json");
+      expected = nlohmann::json::parse(s);
+    }
+
+    REQUIRE(actual == expected);
+  }
 
   {
-    std::ifstream s("data/valid.json");
-    auto json = nlohmann::json::parse(s);
-    actual = pqrs::cf::json::strip_cf_type_json(json);
-  }
-  {
-    std::ifstream s("data/stripped.json");
-    expected = nlohmann::json::parse(s);
-  }
+    nlohmann::json actual;
+    nlohmann::json expected;
 
-  REQUIRE(actual == expected);
+    {
+      std::ifstream s("data/valid.json");
+      auto json = nlohmann::json::parse(s);
+      actual = pqrs::cf::json::strip_cf_type_json(json, pqrs::cf::json::strip_option::collapse_dictionary);
+    }
+    {
+      std::ifstream s("data/stripped_collapse_dictionary.json");
+      expected = nlohmann::json::parse(s);
+    }
+
+    REQUIRE(actual == expected);
+  }
 }
