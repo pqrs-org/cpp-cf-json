@@ -4,7 +4,7 @@
 
 // (C) Copyright Takayama Fumihiko 2020.
 // Distributed under the Boost Software License, Version 1.0.
-// (See http://www.boost.org/LICENSE_1_0.txt)
+// (See https://www.boost.org/LICENSE_1_0.txt)
 
 #include "json/impl/impl.hpp"
 #include "json/strip_option.hpp"
@@ -16,10 +16,8 @@
 #include <pqrs/json.hpp>
 #include <vector>
 
-namespace pqrs {
-namespace cf {
-namespace json {
-inline nlohmann::json to_json(CFTypeRef object) {
+namespace pqrs::cf::json {
+[[nodiscard]] inline nlohmann::json to_json(CFTypeRef object) {
   nlohmann::json result;
 
   if (object) {
@@ -28,13 +26,9 @@ inline nlohmann::json to_json(CFTypeRef object) {
     if (type == CFArrayGetTypeID()) {
       auto value = nlohmann::json::array();
       auto array = reinterpret_cast<CFArrayRef>(object);
-      CFArrayApplyFunction(array,
-                           {0, CFArrayGetCount(array)},
-                           [](const void* o, void* context) {
+      CFArrayApplyFunction(array, {0, CFArrayGetCount(array)}, [](const void* o, void* context) {
                              auto j = reinterpret_cast<nlohmann::json*>(context);
-                             j->push_back(to_json(reinterpret_cast<CFTypeRef>(o)));
-                           },
-                           &value);
+                             j->push_back(to_json(reinterpret_cast<CFTypeRef>(o))); }, &value);
       result = nlohmann::json::object({
           {"type", "array"},
           {"value", value},
@@ -61,15 +55,12 @@ inline nlohmann::json to_json(CFTypeRef object) {
 
     } else if (type == CFDictionaryGetTypeID()) {
       auto value = nlohmann::json::array();
-      CFDictionaryApplyFunction(reinterpret_cast<CFDictionaryRef>(object),
-                                [](const void* k, const void* v, void* context) {
+      CFDictionaryApplyFunction(reinterpret_cast<CFDictionaryRef>(object), [](const void* k, const void* v, void* context) {
                                   auto j = reinterpret_cast<nlohmann::json*>(context);
                                   j->push_back(nlohmann::json::object({
                                       {"key", to_json(k)},
                                       {"value", to_json(v)},
-                                  }));
-                                },
-                                &value);
+                                  })); }, &value);
       result = nlohmann::json::object({
           {"type", "dictionary"},
           {"value", value},
@@ -97,12 +88,9 @@ inline nlohmann::json to_json(CFTypeRef object) {
 
     } else if (type == CFSetGetTypeID()) {
       auto value = nlohmann::json::array();
-      CFSetApplyFunction(reinterpret_cast<CFSetRef>(object),
-                         [](const void* o, void* context) {
+      CFSetApplyFunction(reinterpret_cast<CFSetRef>(object), [](const void* o, void* context) {
                            auto j = reinterpret_cast<nlohmann::json*>(context);
-                           j->push_back(to_json(reinterpret_cast<CFTypeRef>(o)));
-                         },
-                         &value);
+                           j->push_back(to_json(reinterpret_cast<CFTypeRef>(o))); }, &value);
       result = nlohmann::json::object({
           {"type", "set"},
           {"value", value},
@@ -126,7 +114,7 @@ inline nlohmann::json to_json(CFTypeRef object) {
   return result;
 }
 
-inline cf_ptr<CFTypeRef> to_cf_type(const nlohmann::json& json) {
+[[nodiscard]] inline cf_ptr<CFTypeRef> to_cf_type(const nlohmann::json& json) {
   using namespace std::string_literals;
 
   cf_ptr<CFTypeRef> result;
@@ -165,11 +153,9 @@ inline cf_ptr<CFTypeRef> to_cf_type(const nlohmann::json& json) {
       bytes.push_back(j.get<uint8_t>());
     }
 
-    auto data = CFDataCreate(kCFAllocatorDefault,
-                             &(bytes[0]),
-                             bytes.size());
-    result = cf_ptr<CFTypeRef>(data);
-    CFRelease(data);
+    result = adopt_cf_ptr<CFTypeRef>(CFDataCreate(kCFAllocatorDefault,
+                                                  bytes.empty() ? nullptr : bytes.data(),
+                                                  bytes.size()));
 
   } else if (type == "dictionary") {
     impl::validate_dictionary_value(value_json);
@@ -231,8 +217,8 @@ inline cf_ptr<CFTypeRef> to_cf_type(const nlohmann::json& json) {
   return result;
 }
 
-inline nlohmann::json strip_cf_type_json(const nlohmann::json& json,
-                                         type_safe::flag_set<strip_option> options = strip_option::none) {
+[[nodiscard]] inline nlohmann::json strip_cf_type_json(const nlohmann::json& json,
+                                                       type_safe::flag_set<strip_option> options = strip_option::none) {
   using namespace std::string_literals;
 
   nlohmann::json result;
@@ -315,10 +301,11 @@ inline nlohmann::json strip_cf_type_json(const nlohmann::json& json,
     impl::validate_string_value(value_json);
 
     result = value_json;
+
+  } else {
+    throw pqrs::json::unmarshal_error("unknown type: `"s + type + "`"s);
   }
 
   return result;
 }
-} // namespace json
-} // namespace cf
-} // namespace pqrs
+} // namespace pqrs::cf::json

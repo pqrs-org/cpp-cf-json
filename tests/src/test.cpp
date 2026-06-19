@@ -1,15 +1,16 @@
 #include <boost/ut.hpp>
+#include <cstdint>
 #include <fstream>
 #include <pqrs/cf/json.hpp>
 
-int main(void) {
+int main() {
   using namespace boost::ut;
   using namespace boost::ut::literals;
 
   "CFArray"_test = [] {
-    auto array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-    CFArrayAppendValue(array, CFSTR("example"));
-    auto actual = pqrs::cf::json::to_json(array);
+    auto array = pqrs::cf::adopt_cf_ptr(CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks));
+    CFArrayAppendValue(*array, CFSTR("example"));
+    auto actual = pqrs::cf::json::to_json(*array);
     auto expected = nlohmann::json::object({
         {"type", "array"},
         {"value", nlohmann::json::array({
@@ -20,8 +21,6 @@ int main(void) {
                   })},
     });
     expect(actual == expected);
-
-    CFRelease(array);
   };
 
   "CFBoolean"_test = [] {
@@ -46,27 +45,35 @@ int main(void) {
 
   "CFData"_test = [] {
     uint8_t bytes[] = {0, 1, 2, 3, 4, 5, 250};
-    auto data = CFDataCreate(kCFAllocatorDefault,
-                             bytes,
-                             sizeof(bytes));
-    auto actual = pqrs::cf::json::to_json(data);
+    auto data = pqrs::cf::adopt_cf_ptr(CFDataCreate(kCFAllocatorDefault,
+                                                    bytes,
+                                                    sizeof(bytes)));
+    auto actual = pqrs::cf::json::to_json(*data);
     auto expected = nlohmann::json::object({
         {"type", "data"},
         {"value", nlohmann::json::array({0, 1, 2, 3, 4, 5, 250})},
     });
     expect(actual == expected);
 
-    CFRelease(data);
+    auto empty_cf_data = pqrs::cf::json::to_cf_type(nlohmann::json::object({
+        {"type", "data"},
+        {"value", nlohmann::json::array()},
+    }));
+    expect(empty_cf_data);
+    expect(pqrs::cf::json::to_json(*empty_cf_data) == nlohmann::json::object({
+                                                          {"type", "data"},
+                                                          {"value", nlohmann::json::array()},
+                                                      }));
   };
 
   "CFDictionary"_test = [] {
-    auto dictionary = CFDictionaryCreateMutable(kCFAllocatorDefault,
-                                                0,
-                                                &kCFTypeDictionaryKeyCallBacks,
-                                                &kCFTypeDictionaryValueCallBacks);
-    CFDictionaryAddValue(dictionary, CFSTR("k"), CFSTR("v"));
+    auto dictionary = pqrs::cf::adopt_cf_ptr(CFDictionaryCreateMutable(kCFAllocatorDefault,
+                                                                       0,
+                                                                       &kCFTypeDictionaryKeyCallBacks,
+                                                                       &kCFTypeDictionaryValueCallBacks));
+    CFDictionaryAddValue(*dictionary, CFSTR("k"), CFSTR("v"));
 
-    auto actual = pqrs::cf::json::to_json(dictionary);
+    auto actual = pqrs::cf::json::to_json(*dictionary);
     auto expected = nlohmann::json::object({
         {"type", "dictionary"},
         {"value", nlohmann::json::array({nlohmann::json::object({
@@ -75,8 +82,6 @@ int main(void) {
                   })})},
     });
     expect(actual == expected);
-
-    CFRelease(dictionary);
   };
 
   "CFNumber"_test = [] {
@@ -102,23 +107,22 @@ int main(void) {
   };
 
   "CFSet"_test = [] {
-    auto dictionary = CFDictionaryCreateMutable(kCFAllocatorDefault,
-                                                0,
-                                                &kCFTypeDictionaryKeyCallBacks,
-                                                &kCFTypeDictionaryValueCallBacks);
-    CFDictionaryAddValue(dictionary, CFSTR("k"), CFSTR("v"));
+    auto set = pqrs::cf::adopt_cf_ptr(CFSetCreateMutable(kCFAllocatorDefault,
+                                                         0,
+                                                         &kCFTypeSetCallBacks));
+    CFSetAddValue(*set, CFSTR("v"));
 
-    auto actual = pqrs::cf::json::to_json(dictionary);
+    auto actual = pqrs::cf::json::to_json(*set);
     auto expected = nlohmann::json::object({
-        {"type", "dictionary"},
-        {"value", nlohmann::json::array({nlohmann::json::object({
-                      {"key", nlohmann::json::object({{"type", "string"}, {"value", "k"}})},
-                      {"value", nlohmann::json::object({{"type", "string"}, {"value", "v"}})},
-                  })})},
+        {"type", "set"},
+        {"value", nlohmann::json::array({
+                      nlohmann::json::object({
+                          {"type", "string"},
+                          {"value", "v"},
+                      }),
+                  })},
     });
     expect(actual == expected);
-
-    CFRelease(dictionary);
   };
 
   "CFString"_test = [] {
@@ -145,10 +149,7 @@ int main(void) {
       auto json = nlohmann::json::parse(s);
       for (const auto& j : json) {
         expect(throws<pqrs::json::unmarshal_error>([j] {
-          pqrs::cf::json::to_cf_type(j["input"]);
-        }));
-        expect(throws<pqrs::json::unmarshal_error>([j] {
-          pqrs::cf::json::to_cf_type(j["input"]);
+          static_cast<void>(pqrs::cf::json::to_cf_type(j["input"]));
         }));
       }
     }
@@ -188,6 +189,13 @@ int main(void) {
 
       expect(actual == expected);
     }
+
+    expect(throws<pqrs::json::unmarshal_error>([] {
+      static_cast<void>(pqrs::cf::json::strip_cf_type_json(nlohmann::json::object({
+          {"type", "unknown"},
+          {"value", nullptr},
+      })));
+    }));
   };
 
   return 0;
