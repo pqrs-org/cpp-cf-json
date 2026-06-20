@@ -48,6 +48,27 @@
     }
   },
   {
+    "error": "entry of `value` must be byte, but is `-1`",
+    "input": {
+      "type": "data",
+      "value": [-1]
+    }
+  },
+  {
+    "error": "entry of `value` must be byte, but is `256`",
+    "input": {
+      "type": "data",
+      "value": [256]
+    }
+  },
+  {
+    "error": "entry of `value` must be byte, but is `1.5`",
+    "input": {
+      "type": "data",
+      "value": [1.5]
+    }
+  },
+  {
     "error": "`value` must be array, but is `123`",
     "input": {
       "type": "dictionary",

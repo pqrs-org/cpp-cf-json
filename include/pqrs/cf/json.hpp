@@ -8,6 +8,8 @@
 
 #include "json/impl/impl.hpp"
 #include "json/strip_option.hpp"
+#include <cstdint>
+#include <limits>
 #include <pqrs/cf/array.hpp>
 #include <pqrs/cf/dictionary.hpp>
 #include <pqrs/cf/number.hpp>
@@ -26,9 +28,11 @@ namespace pqrs::cf::json {
     if (type == CFArrayGetTypeID()) {
       auto value = nlohmann::json::array();
       auto array = reinterpret_cast<CFArrayRef>(object);
-      CFArrayApplyFunction(array, {0, CFArrayGetCount(array)}, [](const void* o, void* context) {
-                             auto j = reinterpret_cast<nlohmann::json*>(context);
-                             j->push_back(to_json(reinterpret_cast<CFTypeRef>(o))); }, &value);
+      auto count = CFArrayGetCount(array);
+      // Avoid CFArrayApplyFunction since C++ exceptions must not cross C callback boundaries.
+      for (CFIndex i = 0; i < count; ++i) {
+        value.push_back(to_json(reinterpret_cast<CFTypeRef>(CFArrayGetValueAtIndex(array, i))));
+      }
       result = nlohmann::json::object({
           {"type", "array"},
           {"value", value},
@@ -55,12 +59,20 @@ namespace pqrs::cf::json {
 
     } else if (type == CFDictionaryGetTypeID()) {
       auto value = nlohmann::json::array();
-      CFDictionaryApplyFunction(reinterpret_cast<CFDictionaryRef>(object), [](const void* k, const void* v, void* context) {
-                                  auto j = reinterpret_cast<nlohmann::json*>(context);
-                                  j->push_back(nlohmann::json::object({
-                                      {"key", to_json(k)},
-                                      {"value", to_json(v)},
-                                  })); }, &value);
+      auto dictionary = reinterpret_cast<CFDictionaryRef>(object);
+      auto count = CFDictionaryGetCount(dictionary);
+      std::vector<const void*> keys(count);
+      std::vector<const void*> values(count);
+      // Avoid CFDictionaryApplyFunction since C++ exceptions must not cross C callback boundaries.
+      if (count > 0) {
+        CFDictionaryGetKeysAndValues(dictionary, keys.data(), values.data());
+      }
+      for (CFIndex i = 0; i < count; ++i) {
+        value.push_back(nlohmann::json::object({
+            {"key", to_json(reinterpret_cast<CFTypeRef>(keys[i]))},
+            {"value", to_json(reinterpret_cast<CFTypeRef>(values[i]))},
+        }));
+      }
       result = nlohmann::json::object({
           {"type", "dictionary"},
           {"value", value},
@@ -88,9 +100,16 @@ namespace pqrs::cf::json {
 
     } else if (type == CFSetGetTypeID()) {
       auto value = nlohmann::json::array();
-      CFSetApplyFunction(reinterpret_cast<CFSetRef>(object), [](const void* o, void* context) {
-                           auto j = reinterpret_cast<nlohmann::json*>(context);
-                           j->push_back(to_json(reinterpret_cast<CFTypeRef>(o))); }, &value);
+      auto set = reinterpret_cast<CFSetRef>(object);
+      auto count = CFSetGetCount(set);
+      std::vector<const void*> values(count);
+      // Avoid CFSetApplyFunction since C++ exceptions must not cross C callback boundaries.
+      if (count > 0) {
+        CFSetGetValues(set, values.data());
+      }
+      for (CFIndex i = 0; i < count; ++i) {
+        value.push_back(to_json(reinterpret_cast<CFTypeRef>(values[i])));
+      }
       result = nlohmann::json::object({
           {"type", "set"},
           {"value", value},
@@ -149,6 +168,10 @@ namespace pqrs::cf::json {
     std::vector<uint8_t> bytes;
     for (const auto& j : value_json) {
       pqrs::json::requires_number(j, "entry of `value`");
+      if (!j.is_number_unsigned() ||
+          j.get<uint64_t>() > std::numeric_limits<uint8_t>::max()) {
+        throw pqrs::json::unmarshal_error("entry of `value` must be byte, but is `"s + pqrs::json::dump_for_error_message(j) + "`"s);
+      }
 
       bytes.push_back(j.get<uint8_t>());
     }
